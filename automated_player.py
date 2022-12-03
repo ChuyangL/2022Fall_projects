@@ -115,6 +115,8 @@ class Board:
         :param column:
         :return:
         """
+
+        # 1. first update the player board
         board = self.player_1 if player == 1 else self.player_2
         if row > -1 and row < 5 and column < 5 and column > -1:
             board[row][column] = 1
@@ -122,6 +124,18 @@ class Board:
             self.player_1 = board
         else:
             self.player_2 = board
+
+        # 2. update the game board
+        # change the value on the position from "." to "1" or "2"
+        self.board[row][column] = str(player)
+
+        # 3. update bit_columns
+        # for each player's bit_column, each element represents the bit value for the entire column
+
+        if player == 1:
+            self.bit_columns[0] = [''.join(str(row[i]) for row in self.player_1) for i in range(5)]
+        else:
+            self.bit_columns[1] = [''.join(str(row[i]) for row in self.player_2) for i in range(5)]
 
     def play_game(self):
         # TODO: Chuyang
