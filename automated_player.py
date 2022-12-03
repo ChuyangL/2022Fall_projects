@@ -80,6 +80,21 @@ class Board:
 
         :return: if this player has connect 3.
         """
+        board = self.player_1 if player == 1 else self.player_2
+        for i in range(len(board)):
+            for j in range(len(board[0])):
+                if board[i][j] == 1:
+                    if j > 0 and j < 5:
+                        if board[i][j-1] == 1 and board[i][j+1] == 1:
+                            return True
+                    if i > 0 and i < 5:
+                        if board[i-1][j] == 1 and board[i+1][j] == 1:
+                            return True
+                    if i > 0 and i < 5 and j > 0 and j < 5:
+                        if (board[i-1][j-1] == 1 and board[i+1][j+1] == 1) or (board[i-1][j+1] == 1 and board[i+1][j-1] == 1):
+                            return True
+        return False
+
 
     def find_optimized_solution(self, player: int) -> List[int]:
         # TODO: Chuyang
@@ -100,7 +115,13 @@ class Board:
         :param column:
         :return:
         """
-        pass
+        board = self.player_1 if player == 1 else self.player_2
+        if row > -1 and row < 5 and column < 5 and column > -1:
+            board[row][column] = 1
+        if player == 1:
+            self.player_1 = board
+        else:
+            self.player_2 = board
 
     def play_game(self):
         # TODO: Chuyang
