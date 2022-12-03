@@ -81,18 +81,38 @@ class Board:
         :return: if this player has connect 3.
         """
         board = self.player_1 if player == 1 else self.player_2
-        for i in range(len(board)):
-            for j in range(len(board[0])):
-                if board[i][j] == 1:
-                    if j > 0 and j < 5:
-                        if board[i][j-1] == 1 and board[i][j+1] == 1:
-                            return True
-                    if i > 0 and i < 5:
-                        if board[i-1][j] == 1 and board[i+1][j] == 1:
-                            return True
-                    if i > 0 and i < 5 and j > 0 and j < 5:
-                        if (board[i-1][j-1] == 1 and board[i+1][j+1] == 1) or (board[i-1][j+1] == 1 and board[i+1][j-1] == 1):
-                            return True
+
+        def win_vertical(board):
+            for row in range(3):
+                for col in range(5):
+                    if board[row][col] == 1 and board[row + 1][col] == 1 and board[row + 2][col] == 1:
+                        return True
+            return False
+
+        def win_horizontal(board):
+            for row in range(5):
+                for col in range(3):
+                    if board[row][col] == 1 and board[row][col + 1] == 1 and board[row][col + 2] == 1:
+                        return True
+            return False
+
+        def win_left_diag(board):
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] == 1 and board[row + 1][col + 1] == 1 and board[row + 2][col + 2] == 1:
+                        return True
+            return False
+
+        def win_right_diag(board):
+            for row in range(3):
+                for col in range(2, 5):
+                    if board[row][col] == 1 and board[row + 1][col - 1] == 1 and board[row + 2][col - 2] == 1:
+                        return True
+            return False
+
+        if win_horizontal(board) or win_vertical(board) or win_left_diag(board) or win_right_diag(board):
+            return True
+
         return False
 
 
