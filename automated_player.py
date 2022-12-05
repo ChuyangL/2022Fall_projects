@@ -72,48 +72,52 @@ class Board:
             raise ValueError('Column Full. Invalid move!')
 
     def is_winning(self, player: int) -> bool:
-        # TODO: Maggie
-        """
-        Find out if the input player has connect 3 pieces on board.
-
-        :param player: 1 for first player and 2 for second player.
-
-        :return: if this player has connect 3.
-        """
         board = self.player_1 if player == 1 else self.player_2
-
         def win_vertical(board):
             for row in range(3):
                 for col in range(5):
                     if board[row][col] == 1 and board[row + 1][col] == 1 and board[row + 2][col] == 1:
                         return True
             return False
-
         def win_horizontal(board):
             for row in range(5):
                 for col in range(3):
                     if board[row][col] == 1 and board[row][col + 1] == 1 and board[row][col + 2] == 1:
                         return True
             return False
-
         def win_left_diag(board):
             for row in range(3):
                 for col in range(3):
                     if board[row][col] == 1 and board[row + 1][col + 1] == 1 and board[row + 2][col + 2] == 1:
                         return True
             return False
-
         def win_right_diag(board):
             for row in range(3):
                 for col in range(2, 5):
                     if board[row][col] == 1 and board[row + 1][col - 1] == 1 and board[row + 2][col - 2] == 1:
                         return True
             return False
-
         if win_horizontal(board) or win_vertical(board) or win_left_diag(board) or win_right_diag(board):
             return True
-
         return False
+
+    def isWin(self,player:int) -> bool:
+        # using bitboard to detect whether_win
+        if player == 1:
+            bitboard = self.bit_columns[0]
+        else:
+            bitboard = self.bit_columns[1]
+
+        if bitboard & (bitboard >> 6) & (bitboard >> 12) & (bitboard >> 18) != 0:
+            return True # diagonal \
+        if bitboard & (bitboard >> 8) & (bitboard >> 16) & (bitboard >> 24) != 0:
+            return True # diagonal /
+        if bitboard & (bitboard >> 7) & (bitboard >> 14) & (bitboard >> 21) != 0:
+            return True; # horizontal
+        if bitboard & (bitboard >> 1) & (bitboard >> 2) & (bitboard >> 3) != 0:
+            return True # vertical
+        return False
+
 
 
     def find_optimized_solution(self, player: int) -> List[int]:
