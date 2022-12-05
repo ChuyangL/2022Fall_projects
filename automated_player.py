@@ -71,52 +71,64 @@ class Board:
         else:
             raise ValueError('Column Full. Invalid move!')
 
-    def is_winning(self, player: int) -> bool:
-        board = self.player_1 if player == 1 else self.player_2
+    def is_winning(self, player: int, board=None) -> bool:
+        # TODO: Maggie
+        """
+        Find out if the input player has connect 3 pieces on board.
+
+        :param player: 1 for first player and 2 for second player.
+
+        :return: if this player has connect 3.
+        """
+        if board is None:
+            board = self.player_1 if player == 1 else self.player_2
+
         def win_vertical(board):
             for row in range(3):
                 for col in range(5):
                     if board[row][col] == 1 and board[row + 1][col] == 1 and board[row + 2][col] == 1:
                         return True
             return False
+
         def win_horizontal(board):
             for row in range(5):
                 for col in range(3):
                     if board[row][col] == 1 and board[row][col + 1] == 1 and board[row][col + 2] == 1:
                         return True
             return False
+
         def win_left_diag(board):
             for row in range(3):
                 for col in range(3):
                     if board[row][col] == 1 and board[row + 1][col + 1] == 1 and board[row + 2][col + 2] == 1:
                         return True
             return False
+
         def win_right_diag(board):
             for row in range(3):
                 for col in range(2, 5):
                     if board[row][col] == 1 and board[row + 1][col - 1] == 1 and board[row + 2][col - 2] == 1:
                         return True
             return False
+
         if win_horizontal(board) or win_vertical(board) or win_left_diag(board) or win_right_diag(board):
             return True
+
         return False
 
-    def isWin(self,player:int) -> bool:
-        # using bitboard to detect whether_win
+    def cause_opponent_winning(self, player: int, position: List[int]) -> bool:
+        r, c = position[0], position[1]
         if player == 1:
-            bitboard = self.bit_columns[0]
-        else:
-            bitboard = self.bit_columns[1]
-        if bitboard & (bitboard >> 4) & (bitboard >> 8) & (bitboard >> 12) != 0:
-            return True # diagonal \
-        if bitboard & (bitboard >> 6) & (bitboard >> 12) & (bitboard >> 18) != 0:
-            return True # diagonal /
-        if bitboard & (bitboard >> 5) & (bitboard >> 10) & (bitboard >> 15) != 0:
-            return True; # horizontal
-        if bitboard & (bitboard >> 1) & (bitboard >> 2) & (bitboard >> 3) != 0:
-            return True # vertical
-        return False
+            rival_board = self.player_2.copy()
+        elif player == 2:
+            rival_board = self.player_1.copy()
+        rival_board[r][c] = 1
 
+        return self.is_winning(3 - player, rival_board)
+
+    def calculate_freedom(self, player: int, position: List[int]) -> int:
+        freedom = 0
+        player_max_height = self.bit_columns[player - 1]
 
 
     def find_optimized_solution(self, player: int) -> List[int]:
@@ -128,6 +140,52 @@ class Board:
 
         :return: place to make move [row, column].
         """
+        # If the board is empty, put the first piece in the middle
+        if self.tops == np.array([0] * 5):
+            return [4, 2]
+        else:
+            # Iterate all 5 (or less than 5) positions to find the best place to put the piece
+            result = None
+            result_freedom = 0
+            opponent_winning = False
+            for position in self.tops:
+                # If the column is full, skip to the next column
+                if position[0] < 0:
+                    continue
+                else:
+                    r, c = position[0], position[1]
+                    # A temporary board to see the result
+                    new_board_1 = self.player_1.copy()
+                    new_board_2 = self.player_2.copy()
+                    new_board_1[r][c] = 1
+                    new_board_2[r][c] = 1
+                    player_1_winning = self.is_winning(player, new_board_1)
+                    player_2_winning = self.is_winning(player, new_board_2)
+                    # If this move cause immediate winning, return this position
+                    if (player_1_winning and player == 1) or (player_2_winning and player == 2):
+                        return position
+                    # if this position does not cause immediate winning,
+                    # but blocks opponent from winning
+                    # record the position and iterate next position to see if there are better solution
+                    elif (player_1_winning and player == 2) or (player_2_winning and player == 1):
+                        result = position
+                        opponent_winning = True
+                    # If none of these happen
+                    else:
+                        if not opponent_winning:
+                            tmp_top = [r - 1, c]
+                            if tmp_top[0] < 0:
+                                continue
+                            else:
+                                # See if this move will cause opponent winning in the next round
+                                # If not, find the position with maximum freedom (chance of winning)
+                                if not self.cause_opponent_winning(player, tmp_top):
+                                    freedom = self.calculate_freedom(player, position)
+                                    if not result or freedom > result_freedom:
+                                        result = position
+                                        result_freedom = freedom
+
+        return result
 
     def make_move(self, player: int, row: int, column: int):
         # TODO: Maggie
