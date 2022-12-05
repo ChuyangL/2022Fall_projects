@@ -107,12 +107,11 @@ class Board:
             bitboard = self.bit_columns[0]
         else:
             bitboard = self.bit_columns[1]
-
-        if bitboard & (bitboard >> 6) & (bitboard >> 12) & (bitboard >> 18) != 0:
+        if bitboard & (bitboard >> 4) & (bitboard >> 8) & (bitboard >> 12) != 0:
             return True # diagonal \
-        if bitboard & (bitboard >> 8) & (bitboard >> 16) & (bitboard >> 24) != 0:
+        if bitboard & (bitboard >> 6) & (bitboard >> 12) & (bitboard >> 18) != 0:
             return True # diagonal /
-        if bitboard & (bitboard >> 7) & (bitboard >> 14) & (bitboard >> 21) != 0:
+        if bitboard & (bitboard >> 5) & (bitboard >> 10) & (bitboard >> 15) != 0:
             return True; # horizontal
         if bitboard & (bitboard >> 1) & (bitboard >> 2) & (bitboard >> 3) != 0:
             return True # vertical
