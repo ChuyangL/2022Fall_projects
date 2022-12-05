@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import random
 from typing import List
 
 
@@ -132,6 +133,84 @@ class Board:
 
         return self.is_winning(3 - player, rival_board)
 
+    def minimax(self, player, board, depth, alpha, beta, maximizingPlayer):
+        if depth == 0:
+            return None, self.score_position(board, player)
+        if maximizingPlayer:
+            value = -math.inf
+        else:  # Minimizing player
+            value = math.inf
+        column = random.choice(self.tops)
+        for row, col in self.tops:
+            if row < 0:
+                continue
+            else:
+                new_board = board.copy()
+                new_board[row][col] = str(player)
+                new_score = self.minimax(3 - player, new_board, depth - 1, alpha, beta, not maximizingPlayer)[1]
+                if new_score > value:
+                    value = new_score
+                    column = col
+                if maximizingPlayer:
+                    alpha = max(alpha, value)
+                else:
+                    beta = min(beta, value)
+                if alpha >= beta:
+                    break
+
+            return column, value
+
+    def evaluate_window(self, window, player):
+        score = 0
+        opponent = 3 - player
+
+        if window.count(player) == 3:
+            score += 100
+        elif window.count(player) == 2 and window.count('.') == 1:
+            score += 5
+        elif window.count(player) == 1 and window.count('.') == 2:
+            score += 2
+
+        if window.count(opponent) == 2 and window.count('.') == 1:
+            score -= 4
+
+        return score
+
+    def score_position(self, board, player):
+        score = 0
+
+        ## Score center column
+        center_array = [int(i) for i in list(board[:, 5//2])]
+        center_count = center_array.count(str(player))
+        score += center_count * 3
+
+        ## Score Horizontal
+        for r in range(5):
+            row_array = [int(i) for i in list(board[r, :])]
+            for c in range(5 - 2):
+                window = row_array[c:c + 3]
+                score += self.evaluate_window(window, player)
+
+        ## Score Vertical
+        for c in range(5):
+            col_array = [int(i) for i in list(board[:, c])]
+            for r in range(5 - 2):
+                window = col_array[r:r + 3]
+                score += self.evaluate_window(window, player)
+
+        ## Score posiive sloped diagonal
+        for r in range(5 - 2):
+            for c in range(5 - 2):
+                window = [board[r + i][c + i] for i in range(3)]
+                score += self.evaluate_window(window, player)
+
+        for r in range(5 - 3):
+            for c in range(5 - 3):
+                window = [board[r + 3 - i][c + i] for i in range(3)]
+                score += self.evaluate_window(window, player)
+
+        return score
+
     def find_optimized_solution(self, player: int) -> List[int]:
         # TODO: Chuyang
         """
@@ -238,6 +317,7 @@ class Board:
         # print(self.bit_columns)
         self.tops[column] = row - 1
         self.print_board('board')
+
 
     def play_game(self):
         """
